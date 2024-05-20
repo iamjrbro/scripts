@@ -1,1 +1,24 @@
 
+# Connecting Azure AD
+Connect-AzureAD
+
+# Checking if a group is empty (withou members)
+function Check-GroupEmpty {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$GroupId
+    )
+    $members = Get-AzureADGroupMember -ObjectId $GroupId -All $true
+    if ($members.Count -eq 0) {
+        Write-Output "O grupo com ID $GroupId está vazio."
+    } else {
+        Write-Output "O grupo com ID $GroupId NÃO está vazio."
+    }
+}
+
+ 
+$groups = Get-AzureADGroup -All $true
+foreach ($group in $groups) {
+    Write-Output "Verificando grupo: $($group.DisplayName)"
+    Check-GroupEmpty -GroupId $group.ObjectId
+}

@@ -1,0 +1,18 @@
+# Installing ExchangeOnlineManagement
+Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force -AllowClobber
+
+# Charging ExchangeOnlineManagement's module
+Import-Module ExchangeOnlineManagement
+
+# Getting user's credencials 
+$UserCredential = Get-Credential
+
+# Connecting to Microsoft 365 with provided credentials 
+Connect-ExchangeOnline -UserPrincipalName $UserCredential.UserName -Credential $UserCredential
+
+# Getting a list of all user's mailboxes 
+Get-Mailbox
+
+# Disconnecting Microsoft 365's session
+Disconnect-ExchangeOnline -Confirm:$false
+

@@ -1,6 +1,6 @@
 
 # Installing ExchangeOnlineManagement
-Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force -AllowClobber
+Install-Module -Name ExchangeOnlineManagement -Scope AllUsers -Force -AllowClobber
 
 # Charging ExchangeOnlineManagement's module
 Import-Module ExchangeOnlineManagement

@@ -1,4 +1,4 @@
-# Instalar o módulo Microsoft.Graph, se ainda não estiver instalado
+# Instalar o módulo Microsoft.Graph
 if (-not (Get-Module -ListAvailable -Name Microsoft.Graph)) {
     Install-Module Microsoft.Graph -Scope CurrentUser -Force
 }

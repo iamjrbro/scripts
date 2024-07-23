@@ -1,0 +1,7 @@
+- renomear o usuário no AD Local
+ 
+1. executar PowerShell como Admin
+ 
+2. Install-Module -Name AzureAD
+3. Connect-AzureAD
+4. Set-AzureADUser -ObjectId emailAntecedente -UserPrincipalName emailNovo

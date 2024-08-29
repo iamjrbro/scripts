@@ -1,0 +1,77 @@
+# Lista de servidores e credenciais
+$serversWindows = @("server1.domain.com", "server2.domain.com") # Lista de servidores Windows
+$serversLinux = @("server3.domain.com", "server4.domain.com") # Lista de servidores Linux
+$username = "admin"
+$password = ConvertTo-SecureString "yourpassword" -AsPlainText -Force
+$zabbixServer = "zabbixserver.com" # Endereço do servidor Zabbix
+ 
+# Função para instalar o agente Zabbix em servidores Windows
+function Install-ZabbixAgentWindows {
+    param (
+        [string]$server,
+        [string]$zabbixServer
+    )
+ 
+    # Conectar ao servidor via WinRM
+    $session = New-PSSession -ComputerName $server -Credential (New-Object System.Management.Automation.PSCredential($username, $password))
+    # Instala o agente Zabbix
+    Invoke-Command -Session $session -ScriptBlock {
+        # Baixar o instalador do Zabbix
+        Invoke-WebRequest -Uri "https://www.zabbix.com/downloads/5.0.19/zabbix_agent-5.0.19-windows-amd64-openssl.msi" -OutFile "C:\zabbix_agent.msi"
+        # Instalar o agente
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\zabbix_agent.msi /quiet /norestart" -Wait
+        # Configurar o agente para apontar para o servidor Zabbix
+        Set-Content -Path "C:\Program Files\Zabbix Agent\zabbix_agentd.conf" -Value "Server=$zabbixServer`nServerActive=$zabbixServer`nHostname=$(hostname)"
+        # Iniciar o serviço Zabbix Agent
+        Start-Service "Zabbix Agent"
+    }
+    # Fechar a sessão
+    Remove-PSSession -Session $session
+}
+ 
+# Função para instalar o agente Zabbix em servidores Linux
+function Install-ZabbixAgentLinux {
+    param (
+        [string]$server,
+        [string]$zabbixServer,
+        [string]$username,
+        [string]$password
+    )
+    # Conectar ao servidor Linux via SSH e instalar o agente Zabbix
+    $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
+    $sshSession = New-SSHSession -ComputerName $server -Credential $credential -AcceptKey
+ 
+    Invoke-SSHCommand -SSHSession $sshSession -Command "
+    sudo apt update &&
+    sudo apt install -y zabbix-agent &&
+    sudo sed -i 's/^Server=127.0.0.1/Server=$zabbixServer/' /etc/zabbix/zabbix_agentd.conf &&
+    sudo sed -i 's/^ServerActive=127.0.0.1/ServerActive=$zabbixServer/' /etc/zabbix/zabbix_agentd.conf &&
+    sudo sed -i 's/^Hostname=Zabbix server/Hostname=$(hostname)/' /etc/zabbix/zabbix_agentd.conf &&
+    sudo systemctl restart zabbix-agent &&
+    sudo systemctl enable zabbix-agent"
+ 
+    Remove-SSHSession -SSHSession $sshSession
+}
+ 
+# Instala o agente Zabbix em todos os servidores Windows
+foreach ($server in $serversWindows) {
+    try {
+        Write-Host "Instalando Zabbix Agent em $server (Windows)..."
+        Install-ZabbixAgentWindows -server $server -zabbixServer $zabbixServer
+        Write-Host "Agente Zabbix instalado e configurado em $server (Windows)."
+    } catch {
+        Write-Host "Erro ao instalar Zabbix Agent em $server (Windows): $_"
+    }
+}
+ 
+# Instala o agente Zabbix em todos os servidores Linux
+foreach ($server in $serversLinux) {
+    try {
+        Write-Host "Instalando Zabbix Agent em $server (Linux)..."
+        Install-ZabbixAgentLinux -server $server -zabbixServer $zabbixServer -username $username -password $password
+        Write-Host "Agente Zabbix instalado e configurado em $server (Linux)."
+    } catch {
+        Write-Host "Erro ao instalar Zabbix Agent em $server (Linux): $_"
+    }
+}

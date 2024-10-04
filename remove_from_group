@@ -1,0 +1,23 @@
+$usuarios = Import-Csv -Path "c:\scripts\logins_desativados.csv
+
+ foreach ($usuario in $usuarios) {
+    $user = Get-AzureADUser -Filter "UserPrincipalName eq '$($usuario.Login)'"
+ 
+    if ($user) {
+        # Obtenha todos os grupos dos quais o usuário é membro
+        $grupos = Get-AzureADUserMembership -ObjectId $user.ObjectId
+ 
+        if ($grupos) {
+            # Remova o usuário de cada grupo
+            foreach ($grupo in $grupos) {
+                Remove-AzureADGroupMember -ObjectId $grupo.ObjectId -MemberId $user.ObjectId
+            }
+        }
+        else {
+            Write-Host "Nenhum grupo encontrado para o usuário $($usuario.Login)."
+        }
+    }
+    else {
+        Write-Host "Usuário $($usuario.Login) não encontrado no Azure AD."
+    }
+}

@@ -20,9 +20,6 @@ foreach ($profile in $profiles) {
 }
 
 
-
-
-
 --Save the above script to a .ps1 file (e.g., CleanProfiles.ps1)
 
 Schedule execution via Task Scheduler:
@@ -42,4 +39,4 @@ Set to run Daily at the time you wish it to run:
 - under Program/Script, look for powershell.exe
 - under "Add arguments", enter the following argument:
 
--ExecutionPolicy Bypass -File "C:\Caminho\Para\O\Script\LimparPerfis.ps1"
+-ExecutionPolicy Bypass -File "C:\scripts\CleanProfiles.ps1"

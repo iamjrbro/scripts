@@ -2,7 +2,7 @@
 # Connecting Azure AD
 Connect-AzureAD
 
-# Checking if a group is empty (withou members)
+# Checking if a group is empty (without members)
 function Check-GroupEmpty {
     param (
         [Parameter(Mandatory = $true)]

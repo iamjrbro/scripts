@@ -1,3 +1,9 @@
+THIS CODE RUNS ON A FUNTION APP AND IT REQUIRES THE FOLLOWING PERMISSIONS TO WORK:
+  - Group.Read.All
+  - User.Read.All
+  - GroupMember.ReadWrite.All 
+
+
 # Input bindings are passed in via param block.
 param($Timer)
  

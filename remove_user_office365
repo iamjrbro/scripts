@@ -12,7 +12,7 @@ Connect-AzureAD
 $usuarios = Import-Csv -Path "c:\scripts\logins_desativados.csv"
 
 foreach ($usuario in $usuarios) {
-    $user = Get-AzureADUser -Filter "UserPrincipalName eq '$($usuario.Login)'"
+    $user = Get-AzureADUser -Filter "UserPrincipalName eq '$($usuario.UserLogin)'"
 
     if ($user) {
         $grupos = Get-AzureADUserMembership -ObjectId $user.ObjectId
@@ -22,9 +22,9 @@ foreach ($usuario in $usuarios) {
                 Remove-AzureADGroupMember -ObjectId $grupo.ObjectId -MemberId $user.ObjectId
             }
         } else {
-            Write-Host "Nenhum grupo encontrado para o usuário $($usuario.Login)."
+            Write-Host "Nenhum grupo encontrado para o usuário $($usuario.UserLogin)."
         }
     } else {
-        Write-Host "Usuário $($usuario.Login) não encontrado."
+        Write-Host "Usuário $($usuario.UserLogin) não encontrado."
     }
 }

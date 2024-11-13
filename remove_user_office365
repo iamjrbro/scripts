@@ -8,7 +8,7 @@ Install-Module -Name AzureAD
 # Conecte-se ao Azure AD com credenciais administrativas
 Connect-AzureAD
  
-# Leia o arquivo CSV com os logins. Certifique-se de que o CSV tem uma coluna 'Login' com os UPNs dos usuários.
+# Leia o arquivo CSV com os logins. Certifique-se de que o CSV tem uma coluna "User", "Login" ou "Name" com os UPNs dos usuários.
 $usuarios = Import-Csv -Path "c:\scripts\logins_desativados.csv"
 
 foreach ($usuario in $usuarios) {

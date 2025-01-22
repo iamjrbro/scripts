@@ -1,10 +1,11 @@
+# Instale os modulos do Exchange
 Install-Module -Name ExchangeOnlineManagement
-Connect-ExchangeOnline -UserPrincipalName email_de_admin_global
+Connect-ExchangeOnline -UserPrincipalName "admin@seudominio.com" # Insira o administrador global aqui
 
-CSV com os usuários cujos endereços precisam ser alterados, com o seguinte formato:
-UserPrincipalName,CurrentSMTP
-usuario1@seudominio.com,smtp1@seudominio.com
-usuario2@seudominio.com,smtp2@seudominio.com
+# Faça um CSV com os usuários cujos endereços precisam ser alterados, com o seguinte formato:
+UserPrincipalName
+usuario1@seudominio.com
+usuario2@seudominio.com
 
 # Caminho do arquivo CSV
 $csvPath = "C:\Caminho\usuarios.csv"
@@ -21,29 +22,36 @@ foreach ($usuario in $usuarios) {
     # Obter endereço atual do usuário
     $user = Get-Mailbox -Identity $userPrincipalName
 
-    # Criar nova lista de endereços
+    # Lista atual de endereços de e-mail do usuário
+    $currentEmailAddresses = $mailbox.EmailAddresses
     $newEmailAddresses = @()
 
-    # Alterar o SMTP principal para "smtp" e movê-lo para secundário
-    foreach ($email in $user.EmailAddresses) {
-        if ($email -clike "SMTP:$currentSMTP") {
-            $newEmailAddresses += "smtp:$currentSMTP" # Tornar secundário
+    # Variáveis para domínios
+    $currentDomain = "@dominioatual.com.br"
+    $newDomain = "@dominionovo.com.br"
+
+    # Processar os endereços de e-mail
+    foreach ($email in $currentEmailAddresses) {
+        # Se o e-mail atual for o principal e terminar com "@dominioatual.com.br"
+        if ($email -clike "SMTP:*$currentDomain") {
+            # Alterar para secundário
+            $newEmailAddresses += "smtp:" + ($email -replace "SMTP:", "")
         } else {
+            # Manter outros endereços inalterados
             $newEmailAddresses += $email
         }
     }
 
-    # Atualizar endereço principal
-    $newEmailAddresses += "SMTP:$currentSMTP"
+    # Adicionar o novo endereço principal com o domínio "@dominionovo.com.br"
+    $newPrimaryEmail = ($userPrincipalName -replace "$currentDomain", "$newDomain")
+    $newEmailAddresses += "SMTP:$newPrimaryEmail"
 
-    # Aplicar alterações
+    # Atualizar os endereços no Exchange Online
     Set-Mailbox -Identity $userPrincipalName -EmailAddresses $newEmailAddresses
 
-    Write-Host "SMTP alterado para o usuário $userPrincipalName"
+    Write-Host "Endereços de e-mail atualizados para o usuário: $userPrincipalName"
 }
 
 # Desconectar do Exchange Online
 Disconnect-ExchangeOnline -Confirm:$false
-
-Get-Mailbox -Identity usuario@seudominio.com | Select-Object -ExpandProperty EmailAddresses
 

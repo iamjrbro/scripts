@@ -1,0 +1,49 @@
+Install-Module -Name ExchangeOnlineManagement
+Connect-ExchangeOnline -UserPrincipalName email_de_admin_global
+
+CSV com os usuários cujos endereços precisam ser alterados, com o seguinte formato:
+UserPrincipalName,CurrentSMTP
+usuario1@seudominio.com,smtp1@seudominio.com
+usuario2@seudominio.com,smtp2@seudominio.com
+
+# Caminho do arquivo CSV
+$csvPath = "C:\Caminho\usuarios.csv"
+
+# Importar lista de usuários
+$usuarios = Import-Csv -Path $csvPath
+
+# Loop para alterar SMTP
+foreach ($usuario in $usuarios) {
+    # Capturar informações do usuário
+    $userPrincipalName = $usuario.UserPrincipalName
+    $currentSMTP = $usuario.CurrentSMTP
+
+    # Obter endereço atual do usuário
+    $user = Get-Mailbox -Identity $userPrincipalName
+
+    # Criar nova lista de endereços
+    $newEmailAddresses = @()
+
+    # Alterar o SMTP principal para "smtp" e movê-lo para secundário
+    foreach ($email in $user.EmailAddresses) {
+        if ($email -clike "SMTP:$currentSMTP") {
+            $newEmailAddresses += "smtp:$currentSMTP" # Tornar secundário
+        } else {
+            $newEmailAddresses += $email
+        }
+    }
+
+    # Atualizar endereço principal
+    $newEmailAddresses += "SMTP:$currentSMTP"
+
+    # Aplicar alterações
+    Set-Mailbox -Identity $userPrincipalName -EmailAddresses $newEmailAddresses
+
+    Write-Host "SMTP alterado para o usuário $userPrincipalName"
+}
+
+# Desconectar do Exchange Online
+Disconnect-ExchangeOnline -Confirm:$false
+
+Get-Mailbox -Identity usuario@seudominio.com | Select-Object -ExpandProperty EmailAddresses
+
